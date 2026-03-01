@@ -6,8 +6,16 @@ from hashlib import md5
 from PIL import Image
 import threading
 from imageio import get_reader
-vipsbin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vips-dev-8.18", "bin")
+
 pyvips_exists = False
+script_dir = os.path.dirname(os.path.abspath(__file__))
+vipsbin = os.path.join(script_dir, "vips-dev-8.18", "bin")
+if os.path.exists(vipsbin): pass
+else: 
+    for x in os.listdir(script_dir):
+        if "vips" in x:
+            vipsbin = os.path.join(script_dir, x, "bin")
+            break
 if os.path.exists(vipsbin):
     os.environ['PATH'] = os.pathsep.join((vipsbin, os.environ['PATH']))
     os.add_dll_directory(vipsbin)
@@ -149,9 +157,13 @@ class ThumbManager:
             print("Error encountered in Thumbmanager:", e)
         finally:
             self.thumb_queue.task_done()
+            with self._left_lock:
+                self.processed_count += 1
+                if self.processed_count % 1 == 0:
+                    self.root.after(1, self.func, self.processed_count)
         
         if self.thumb_queue.empty() and self.thumb_queue.unfinished_tasks == 0:
-            self.root.after(0, lambda: self.status_label.config(text=f"Done in {perf_counter()-self.start:.2f}s!"))
+            self.root.after(1, lambda: self.status_label.config(text=f"Done in {perf_counter()-self.start:.2f}s!"))
 
     def flush_all(self):
         self.stop_event.set()
