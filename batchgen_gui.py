@@ -21,6 +21,7 @@ def open_dest():
     subprocess.Popen(f'explorer "{os.path.normpath(data_dir)}"')
 
 length = 0
+last = []
 def generate_thumbnails():
     os.makedirs(data_dir, exist_ok=True)
     if not folder_path_var.get(): return
@@ -37,24 +38,28 @@ def generate_thumbnails():
     
     def run():
         global length
+        global last
+        last.clear()
         imagelist = [(x) for x in walk(folder_path_var.get())]
         length = len(imagelist)
         generated_so_far.set(f"0/{length}")
         Thumbnail_generator.generate(imagelist, settings)
-        root.after(0, check)
+        """root.after(0, check)"""
 
     Thread(target=run, daemon=True).start()
     
-
-last = []
-def check():
+"""def check():
     global last
-    new = len(os.listdir(data_dir))
+    i = 0
+    for root1, dirs, files in os.walk(data_dir):
+        for x in files:
+            i += 1
+    new = i
     last.append(new)
     if len(last) == 4: last.pop(0)
     generated_so_far.set(f"{new}/{length}")
     if len(last) == 3 and last[0] == last[-1]: return
-    root.after(500, check)
+    root.after(500, check)"""
 
 def on_close():
     save_data = {
@@ -160,11 +165,13 @@ tk.Button(frame_actions, text="Dest", command=open_dest, bg="#404060", fg="white
 tk.Button(frame_actions, text="Generate Thumbs", command=generate_thumbnails, bg="#404060", fg="white").grid(row=0, column=3, sticky="ew")
 
 import random
-messages = ["Hello", "Salutations", "I'm sorry Dave. I'm afraid I can't do that", "First things last", "Broken perfectly", "Sure as the Sun", "Dog days aren't over", "Monster afoot", "Sympathy for the Moon", "Sunny side Up", "Caught in a Good Lie", "Sinking Ships", "Wave Hello", "Cut to Size", "All Prevailing", "Light in the Darkness", "Heavenly Sin", "You're my sunshine", "The great blue", "Alone in the golden city", "An Ungodly row on Deck", "Lost and Found", "A moonless night", "Nothing's too hard - Nothing's easy.", "Drink water", "Ally cat", "Waking dream", "Hugged to death", "Mean streak", "Heavy air", "Kissing spree", "Little on the nose", "Cacophony of Voices", "When the sun loves the Moon", "Beings Beyond", "Reality Escalator", "The cave never really leaves people", "Selfish wish", "Wanting/Knowing"]
+messages = ["Hello", "Salutations", "I'm sorry Dave - I'm afraid I can't do that", "First things last", "Broken perfectly", "Sure as the Sun", "Dog days aren't over", "Monster afoot", "Sympathy for the Moon", "Sunny side Up", "Caught in a Good Lie", "Sinking Ships", "Wave Hello", "Cut to Size", "All Prevailing", "Light in the Darkness", "Heavenly Sin", "You're my sunshine", "The great blue", "Alone in the golden city", "An Ungodly row on Deck", "Lost and Found", "A moonless night", "Nothing's too hard - Nothing's easy", "Drink water", "Ally cat", "Waking dream", "Hugged to death", "Mean streak", "Heavy air", "Kissing spree", "Little on the nose", "Cacophony of Voices", "When the sun loves the Moon", "Beings Beyond", "Reality Escalator", "The cave never really leaves people", "Selfish wish", "Wanting/Knowing"]
 msg = random.choice(messages)
 status_label = tk.Label(root, text=msg, bg="#202041", fg="white")
 status_label.grid(row=4, column=0, pady=(5, 0))
-Thumbnail_generator = ThumbManager(root, data_dir, None, status_label)
+def increment(val):
+    generated_so_far.set(f"{val}/{length}")
+Thumbnail_generator = ThumbManager(root, data_dir, increment, status_label)
 
 tk.Label(root, textvariable=generated_so_far, bg="#202041", fg="white").grid(row=5, column=0, pady=(0, 10))
 
