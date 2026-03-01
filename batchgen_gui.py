@@ -53,7 +53,7 @@ def check():
     last.append(new)
     if len(last) == 4: last.pop(0)
     generated_so_far.set(f"{new}/{length}")
-    if last[0] == last[-1]: return
+    if len(last) == 3 and last[0] == last[-1]: return
     root.after(500, check)
     
 """def increment_generated_so_far(processed_count):
